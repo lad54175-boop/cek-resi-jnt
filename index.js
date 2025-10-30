@@ -1,9 +1,12 @@
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 
+// Ganti dengan token bot kamu
 const TELEGRAM_TOKEN = '7223686317:AAFJKbUn4qC-s9s6Ii-vQRevQ47bk47TS2I';
-const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
+// Ganti dengan API key BinderByte kamu
 const BINDERBYTE_KEY = '071ef170e025fe2ca816ed5aecb5413e2356fbb0c9f701a01a581870527581ec';
+
+const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
@@ -17,7 +20,7 @@ bot.on('message', async (msg) => {
     const res = await axios.get(url);
     const data = res.data;
 
-    if (data.status !== 200 || !data.data || !data.data.manifest.length) {
+    if (data.status !== 200 || !data.data || !data.data.manifest?.length) {
       return bot.sendMessage(chatId, '❌ Resi belum tersedia atau salah nomor.');
     }
 
@@ -25,9 +28,16 @@ bot.on('message', async (msg) => {
     const receiverName = result.receiver_name || '-';
     const receiverAddress = result.receiver_address || '-';
     const latestManifest = result.manifest[result.manifest.length -1];
-    const statusText = latestManifest.manifest_description;
-    const dateText = `${latestManifest.manifest_date} ${latestManifest.manifest_time}`;
-    const codText = result.cod_status || 'Tidak tersedia';
+    const statusText = latestManifest.manifest_description || '-';
+    const dateText = `${latestManifest.manifest_date || '-'} ${latestManifest.manifest_time || '-'}`;
+
+    // COD otomatis Ya/Tidak dan tampil harga jika ada
+    let codText = 'Tidak';
+    if(result.cod_status && result.cod_amount){
+        codText = `Ya (Rp ${result.cod_amount})`;
+    } else if(result.cod_status){
+        codText = 'Ya';
+    }
 
     let reply = `📦 EKSPEDISI JNT\n└ J&T Express\n\n`;
     reply += `📩 Resi\n└ No Resi : ${awb}\n\n`;
